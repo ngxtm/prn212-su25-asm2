@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NguyenTheMinhWPF.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,7 +27,20 @@ namespace NguyenTheMinhWPF
 
         private void btnLogin_Click(object sender, RoutedEventArgs e)
         {
+            var email = txtEmail.Text.Trim();
+            var password = txtPassword.Text;
 
+            if (email == ConfigurationImport.AdminEmail &&
+                password == ConfigurationImport.AdminPassword)
+            {
+                var adminDashboard = new AdminDashboard();
+                adminDashboard.Show();
+                this.Close();
+            }
+            else
+            {
+                MessageBox.Show("Email hoặc mật khẩu không đúng!");
+            }
         }
     }
 }

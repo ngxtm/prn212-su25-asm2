@@ -1,0 +1,18 @@
+﻿<Window x:Class="NguyenTheMinhWPF.AdminDashboard"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NguyenTheMinhWPF"
+        mc:Ignorable="d"
+        Title="AdminDashboard" Height="450" Width="800">
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Left" Width="180" Background="#2d3e50">
+            <Button x:Name="btnCustomer" Content="Khách hàng" Click="btnCustomer_Click"/>
+            <Button x:Name="btnRoom" Content="Phòng" Click="btnRoom_Click"/>
+            <Button x:Name="btnBooking" Content="Đặt phòng" Click="btnBooking_Click"/>
+            <Button x:Name="btnReport" Content="Báo cáo" Click="btnReport_Click"/>
+        </StackPanel>
+        <Frame x:Name="MainFrame" NavigationUIVisibility="Hidden"/>
+    </DockPanel>
+</Window>
