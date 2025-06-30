@@ -1,4 +1,4 @@
-﻿using NguyenTheMinhWPF.Utils;
+using NguyenTheMinhWPF.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +28,7 @@ namespace NguyenTheMinhWPF
         private void btnLogin_Click(object sender, RoutedEventArgs e)
         {
             var email = txtEmail.Text.Trim();
-            var password = txtPassword.Text;
+            var password = pbPassword.Password;
 
             if (email == ConfigurationImport.AdminEmail &&
                 password == ConfigurationImport.AdminPassword)
@@ -36,6 +36,7 @@ namespace NguyenTheMinhWPF
                 var adminDashboard = new AdminDashboard();
                 adminDashboard.Show();
                 this.Close();
+                return;
             }
             else
             {

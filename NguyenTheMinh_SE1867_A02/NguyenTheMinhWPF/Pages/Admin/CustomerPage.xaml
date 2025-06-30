@@ -6,7 +6,8 @@
       xmlns:local="clr-namespace:NguyenTheMinhWPF.Pages.Admin"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
-      Title="Research Project Management - SU 2025" Height="500" Width="800" FontFamily="Tahoma" FontSize="13" Background="#FFF5F5DC">
+      Loaded="Page_Loaded"
+      Title="Research Project Management - SU 2025" FontFamily="Tahoma" FontSize="13" Background="#FFF5F5DC">
     <DockPanel>
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,10,0,10">
             <TextBox x:Name="txtSearch" Width="200" Margin="0,0,10,0"/>
@@ -15,6 +16,7 @@
             <Button x:Name="btnAdd" Content="Add" Click="btnAdd_Click" Margin="0,0,10,0"/>
             <Button x:Name="btnUpdate" Content="Update" Click="btnUpdate_Click" Margin="0,0,10,0"/>
             <Button x:Name="btnDelete" Content="Delete" Click="btnDelete_Click"/>
+            <Button Name="btnClear" Content="Clear"/>
         </StackPanel>
         <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
             <Grid.ColumnDefinitions>

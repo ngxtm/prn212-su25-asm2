@@ -26,7 +26,7 @@
         <Label Content="Email"/>
         <TextBox x:Name="txtEmail"/>
         <Label Content="Password"/>
-        <TextBox x:Name="txtPassword"/>
+        <PasswordBox x:Name="pbPassword"/>
         <Button x:Name="btnLogin" Content="Login" Click="btnLogin_Click"/>
     </StackPanel>
 </Window>
