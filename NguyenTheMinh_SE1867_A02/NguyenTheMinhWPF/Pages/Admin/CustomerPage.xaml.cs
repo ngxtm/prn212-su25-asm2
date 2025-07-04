@@ -225,5 +225,10 @@ namespace NguyenTheMinhWPF.Pages.Admin
             cbStatus.SelectedValue = customer.CustomerStatus;
             txtPassword.Text = customer.Password;
         }
+
+        private void btnClear_Click(object sender, RoutedEventArgs e)
+        {
+            ClearForm();
+        }
     }
 }

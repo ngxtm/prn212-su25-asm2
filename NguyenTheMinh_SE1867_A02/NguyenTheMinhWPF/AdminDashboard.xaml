@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NguyenTheMinhWPF"
         mc:Ignorable="d"
-        Title="AdminDashboard" Height="450" Width="800">
+        Title="AdminDashboard" Height="600" Width="1300">
     <DockPanel>
         <StackPanel DockPanel.Dock="Left" Width="180" Background="#2d3e50">
             <Button x:Name="btnCustomer" Content="Khách hàng" Click="btnCustomer_Click"/>
