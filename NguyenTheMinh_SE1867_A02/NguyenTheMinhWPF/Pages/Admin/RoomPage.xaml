@@ -6,9 +6,59 @@
       xmlns:local="clr-namespace:NguyenTheMinhWPF.Pages.Admin"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
-      Title="RoomPage">
+      Loaded="Page_Loaded"
+      Title="Hotel Management System - Admin" FontFamily="Tahoma" FontSize="13" Background="#FFF5F5DC">
 
-    <Grid>
-        
-    </Grid>
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,10,0,10">
+            <TextBox x:Name="txtSearch" Width="200" Margin="0,0,10,0"/>
+            <Button x:Name="btnSearch" Content="Search" Click="btnSearch_Click" Margin="0,0,10,0"/>
+            <!--<Button x:Name="btnView" Content="View Detail" Click="btnView_Click" Margin="0,0,10,0"/>-->
+            <Button x:Name="btnAdd" Content="Add" Click="btnAdd_Click" Margin="0,0,10,0"/>
+            <Button x:Name="btnUpdate" Content="Update" Click="btnUpdate_Click" Margin="0,0,10,0"/>
+            <Button x:Name="btnDelete" Content="Delete" Click="btnDelete_Click" Margin="0,0,10,0"/>
+            <Button Name="btnClear" Content="Clear Form" Click="btnClear_Click"/>
+        </StackPanel>
+        <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Label Content="Room Number" Grid.Row="0" Grid.Column="0"/>
+            <TextBox x:Name="txtRoomNumber" Grid.Row="0" Grid.Column="1"/>
+            <Label Content="Detail Description" Grid.Row="1" Grid.Column="0"/>
+            <TextBox x:Name="txtRoomDetailDescription" Grid.Row="1" Grid.Column="1"/>
+            <Label Content="Max Capacity" Grid.Row="2" Grid.Column="0"/>
+            <TextBox x:Name="txtMaxCapacity" Grid.Row="2" Grid.Column="1"/>
+            <Label Content="Room Type" Grid.Row="3" Grid.Column="0"/>
+            <ComboBox x:Name="cbRoomType" Grid.Row="3" Grid.Column="1" DisplayMemberPath="RoomTypeName" SelectedValuePath="RoomTypeId"/>
+            <Label Content="Status" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2"/>
+            <ComboBox x:Name="cbStatus" Grid.Row="4" Grid.Column="1" SelectedValuePath="Tag">
+                <ComboBoxItem Tag="1" Content="Active" />
+                <ComboBoxItem Tag="0" Content="Inactive" />
+            </ComboBox>
+            <Label Content="Price Per Day" Grid.Row="5" Grid.Column="0"/>
+            <TextBox x:Name="txtPrice" Grid.Row="5" Grid.Column="1"/>
+        </Grid>
+        <DataGrid x:Name="dgRoom" DockPanel.Dock="Bottom" IsReadOnly="True" AreRowDetailsFrozen="True" AutoGenerateColumns="False" CanUserAddRows="False" SelectionChanged="dgRoom_SelectionChanged">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Id" Binding="{Binding RoomId}" Width="60"/>
+                <DataGridTextColumn Header="Room Number" Binding="{Binding RoomNumber}" Width="100"/>
+                <DataGridTextColumn Header="Detail Description" Binding="{Binding RoomDetailDescription}" Width="150"/>
+                <DataGridTextColumn Header="Max Capacity" Binding="{Binding RoomMaxCapacity}" Width="105"/>
+                <DataGridTextColumn Header="Type ID" Binding="{Binding RoomTypeId}" Width="60"/>
+                <DataGridTextColumn Header="Type name" Binding="{Binding RoomType.RoomTypeName}" Width="80"/>
+                <DataGridTextColumn Header="Type Description" Binding="{Binding RoomType.TypeDescription}" Width="110"/>
+                <DataGridTextColumn Header="Note" Binding="{Binding RoomType.TypeNote}" Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
 </Page>
