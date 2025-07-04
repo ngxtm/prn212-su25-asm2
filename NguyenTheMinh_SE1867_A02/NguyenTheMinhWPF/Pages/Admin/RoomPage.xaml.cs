@@ -93,7 +93,7 @@ namespace NguyenTheMinhWPF.Pages.Admin
 
         private void btnClear_Click(object sender, RoutedEventArgs e)
         {
-
+            ClearForm();
         }
 
         private void dgRoom_SelectionChanged(object sender, SelectionChangedEventArgs e)
