@@ -27,3 +27,4 @@
 *.tmp
 *.log
 *~
+*.code-workspace
