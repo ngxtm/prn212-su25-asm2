@@ -43,21 +43,31 @@ namespace BLL.Services
             {
                 BookingReservationId = model.BookingReservationID,
                 BookingDate = model.BookingDate,
-                TotalPrice = model.TotalPrice,
                 CustomerId = model.CustomerID,
                 BookingStatus = model.BookingStatus,
             };
             _db.BookingReservations.Add(booking);
             _db.SaveChanges();
+            var room = _db.RoomInformations.FirstOrDefault(r => r.RoomId == model.RoomID);
+            decimal? actualPrice = null;
+            if (room != null && room.RoomPricePerDay.HasValue)
+            {
+                int days = (model.EndDate.DayNumber - model.StartDate.DayNumber) + 1;
+                actualPrice = room.RoomPricePerDay.Value * days;
+            }
             var detail = new BookingDetail
             {
                 BookingReservationId = booking.BookingReservationId,
                 RoomId = model.RoomID,
                 StartDate = model.StartDate,
                 EndDate = model.EndDate,
-                ActualPrice = model.ActualPrice
+                ActualPrice = actualPrice
             };
             _db.BookingDetails.Add(detail);
+            _db.SaveChanges();
+            booking.TotalPrice = _db.BookingDetails
+                .Where(d => d.BookingReservationId == booking.BookingReservationId)
+                .Sum(d => d.ActualPrice ?? 0);
             _db.SaveChanges();
         }
 
@@ -67,7 +77,6 @@ namespace BLL.Services
             if (booking != null)
             {
                 booking.BookingDate = model.BookingDate;
-                booking.TotalPrice = model.TotalPrice;
                 booking.CustomerId = model.CustomerID;
                 booking.BookingStatus = model.BookingStatus;
                 var detail = booking.BookingDetails.FirstOrDefault(d => d.RoomId == model.RoomID);
@@ -75,8 +84,15 @@ namespace BLL.Services
                 {
                     detail.StartDate = model.StartDate;
                     detail.EndDate = model.EndDate;
-                    detail.ActualPrice = model.ActualPrice;
+                    var room = _db.RoomInformations.FirstOrDefault(r => r.RoomId == model.RoomID);
+                    if (room != null && room.RoomPricePerDay.HasValue)
+                    {
+                        int days = (model.EndDate.DayNumber - model.StartDate.DayNumber) + 1;
+                        detail.ActualPrice = room.RoomPricePerDay.Value * days;
+                    }
                 }
+                _db.SaveChanges();
+                booking.TotalPrice = booking.BookingDetails.Sum(d => d.ActualPrice ?? 0);
                 _db.SaveChanges();
             }
         }

@@ -67,6 +67,7 @@ namespace NguyenTheMinhWPF.Pages.Admin
                 MessageBox.Show("Thêm đặt phòng thành công!");
                 ClearForm();
                 LoadBookings();
+                UpdateDisplayedTotalPrice(model.BookingReservationID);
             }
             catch (Exception ex)
             {
@@ -84,6 +85,7 @@ namespace NguyenTheMinhWPF.Pages.Admin
                 MessageBox.Show("Cập nhật đặt phòng thành công!");
                 ClearForm();
                 LoadBookings();
+                UpdateDisplayedTotalPrice(model.BookingReservationID);
             }
             catch (Exception ex)
             {
@@ -136,7 +138,7 @@ namespace NguyenTheMinhWPF.Pages.Admin
             {
                 BookingReservationID = int.TryParse(txtBookingReservationID.Text, out int bid) ? bid : 0,
                 BookingDate = dpBookingDate.SelectedDate.HasValue ? System.DateOnly.FromDateTime(dpBookingDate.SelectedDate.Value) : null,
-                TotalPrice = decimal.TryParse(txtTotalPrice.Text, out decimal tp) ? tp : null,
+                // TotalPrice is not set from user input anymore
                 CustomerID = int.TryParse(txtCustomerID.Text, out int cid) ? cid : 0,
                 CustomerFullName = txtCustomerFullName.Text,
                 Telephone = txtTelephone.Text,
@@ -179,6 +181,15 @@ namespace NguyenTheMinhWPF.Pages.Admin
             txtActualPrice.Text = model.ActualPrice?.ToString();
         }
 
+        private void UpdateDisplayedTotalPrice(int bookingReservationId)
+        {
+            var booking = _allBookings.FirstOrDefault(b => b.BookingReservationID == bookingReservationId);
+            if (booking != null)
+            {
+                txtTotalPrice.Text = booking.TotalPrice?.ToString();
+            }
+        }
+
         private void txtCustomerID_TextChanged(object sender, TextChangedEventArgs e)
         {
             txtCustomerError.Visibility = Visibility.Collapsed;
@@ -187,6 +198,38 @@ namespace NguyenTheMinhWPF.Pages.Admin
         private void txtRoomID_TextChanged(object sender, TextChangedEventArgs e)
         {
             txtRoomError.Visibility = Visibility.Collapsed;
+            CalculateAndDisplayActualPrice();
+        }
+
+        private void dpStartDate_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+        {
+            CalculateAndDisplayActualPrice();
+        }
+
+        private void dpEndDate_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+        {
+            CalculateAndDisplayActualPrice();
+        }
+
+        private void CalculateAndDisplayActualPrice()
+        {
+            if (int.TryParse(txtRoomID.Text, out int roomId) && dpStartDate.SelectedDate.HasValue && dpEndDate.SelectedDate.HasValue)
+            {
+                var room = _roomService.GetAllRoomInformations().FirstOrDefault(r => r.RoomId == roomId);
+                if (room != null && room.RoomPricePerDay.HasValue)
+                {
+                    var start = dpStartDate.SelectedDate.Value;
+                    var end = dpEndDate.SelectedDate.Value;
+                    int days = (end - start).Days + 1;
+                    if (days > 0)
+                    {
+                        decimal actualPrice = room.RoomPricePerDay.Value * days;
+                        txtActualPrice.Text = actualPrice.ToString("F2");
+                        return;
+                    }
+                }
+            }
+            txtActualPrice.Text = string.Empty;
         }
 
         private void ClearForm()

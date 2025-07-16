@@ -1,0 +1,25 @@
+<Page x:Class="NguyenTheMinhWPF.Pages.Customer.BookingHistoryPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      mc:Ignorable="d"
+      Title="BookingHistoryPage">
+    <Grid Margin="20">
+        <StackPanel>
+            <TextBlock Text="Lịch sử đặt phòng" FontSize="28" FontWeight="Bold" Margin="0,0,0,20"/>
+            <DataGrid x:Name="dgBookingHistory" AutoGenerateColumns="False" Height="400">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Mã đặt phòng" Binding="{Binding BookingReservationID}" Width="*"/>
+                    <DataGridTextColumn Header="Ngày đặt" Binding="{Binding BookingDate}" Width="*"/>
+                    <DataGridTextColumn Header="Tổng tiền" Binding="{Binding TotalPrice}" Width="*"/>
+                    <DataGridTextColumn Header="Trạng thái" Binding="{Binding BookingStatus}" Width="*"/>
+                    <DataGridTextColumn Header="Phòng" Binding="{Binding RoomNumber}" Width="*"/>
+                    <DataGridTextColumn Header="Ngày nhận" Binding="{Binding StartDate}" Width="*"/>
+                    <DataGridTextColumn Header="Ngày trả" Binding="{Binding EndDate}" Width="*"/>
+                    <DataGridTextColumn Header="Giá thực tế" Binding="{Binding ActualPrice}" Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </StackPanel>
+    </Grid>
+</Page> 

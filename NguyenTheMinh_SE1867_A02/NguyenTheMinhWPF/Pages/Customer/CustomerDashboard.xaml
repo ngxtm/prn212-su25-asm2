@@ -1,0 +1,12 @@
+<Window x:Class="NguyenTheMinhWPF.Pages.Customer.CustomerDashboard"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Customer Dashboard" Height="600" Width="1000">
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Left" Width="180" Background="#2d3e50">
+            <Button x:Name="btnProfile" Content="Hồ sơ cá nhân" Margin="10" Click="btnProfile_Click"/>
+            <Button x:Name="btnBookingHistory" Content="Lịch sử đặt phòng" Margin="10" Click="btnBookingHistory_Click"/>
+        </StackPanel>
+        <Frame x:Name="MainFrame" NavigationUIVisibility="Hidden"/>
+    </DockPanel>
+</Window> 

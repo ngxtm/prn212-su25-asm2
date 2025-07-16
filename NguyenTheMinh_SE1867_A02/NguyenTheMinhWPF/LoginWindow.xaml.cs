@@ -12,6 +12,9 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using BLL.Services;
+using DAL.Entities;
+using NguyenTheMinhWPF.Pages.Customer;
 
 namespace NguyenTheMinhWPF
 {
@@ -40,7 +43,18 @@ namespace NguyenTheMinhWPF
             }
             else
             {
-                MessageBox.Show("Email hoặc mật khẩu không đúng!");
+                var customerService = new CustomerService();
+                var customer = customerService.GetCustomerByEmailAndPassword(email, password);
+                if (customer != null)
+                {
+                    var customerDashboard = new CustomerDashboard(customer);
+                    customerDashboard.Show();
+                    this.Close();
+                }
+                else
+                {
+                    MessageBox.Show("Email hoặc mật khẩu không đúng!");
+                }
             }
         }
     }

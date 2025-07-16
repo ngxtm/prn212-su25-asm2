@@ -36,5 +36,15 @@ namespace BLL.Services
         {
             _customerRepositories.DeleteCustomer(id);
         }
+
+        public void UpdateCustomer(Customer customer)
+        {
+            _customerRepositories.UpdateCustomer(customer);
+        }
+
+        public Customer? GetCustomerByEmailAndPassword(string email, string password)
+        {
+            return _customerRepositories.GetCustomerByEmailAndPassword(email, password);
+        }
     }
 }

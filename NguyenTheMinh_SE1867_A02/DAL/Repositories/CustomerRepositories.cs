@@ -34,6 +34,12 @@ namespace DAL.Repositories
             }
         }
 
+        public void UpdateCustomer(Customer customer)
+        {
+            _db.Customers.Update(customer);
+            _db.SaveChanges();
+        }
+
         public List<Customer> GetAllCustomers()
         {
             try
@@ -69,6 +75,9 @@ namespace DAL.Repositories
             }
         }
 
-        
+        public Customer? GetCustomerByEmailAndPassword(string email, string password)
+        {
+            return _db.Customers.FirstOrDefault(c => c.EmailAddress == email && c.Password == password);
+        }
     }
 }
