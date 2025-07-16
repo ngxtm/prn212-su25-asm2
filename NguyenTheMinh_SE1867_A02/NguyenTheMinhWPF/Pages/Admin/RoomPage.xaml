@@ -9,6 +9,21 @@
       Loaded="Page_Loaded"
       Title="Hotel Management System - Admin" FontFamily="Tahoma" FontSize="13" Background="#FFF5F5DC">
 
+    <Page.Resources>
+        <Style TargetType="Label">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#FF6B705C"/>
+            <Setter Property="FontFamily" Value="Arial"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#FFFFF8EB"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Foreground" Value="#FFFFFFFF"/>
+            <Setter Property="Background" Value="#FFB38B82"/>
+        </Style>
+    </Page.Resources>
     <DockPanel>
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,10,0,10">
             <TextBox x:Name="txtSearch" Width="200" Margin="0,0,10,0"/>
@@ -53,11 +68,13 @@
                 <DataGridTextColumn Header="Id" Binding="{Binding RoomId}" Width="60"/>
                 <DataGridTextColumn Header="Room Number" Binding="{Binding RoomNumber}" Width="100"/>
                 <DataGridTextColumn Header="Detail Description" Binding="{Binding RoomDetailDescription}" Width="150"/>
-                <DataGridTextColumn Header="Max Capacity" Binding="{Binding RoomMaxCapacity}" Width="105"/>
+                <DataGridTextColumn Header="Max Capacity" Binding="{Binding RoomMaxCapacity}" Width="100"/>
+                <DataGridTextColumn Header="Room Status" Binding="{Binding RoomStatus}" Width="100"/>
+                <DataGridTextColumn Header="Room Price Per Day" Binding="{Binding RoomPricePerDay}" Width="100"/>
                 <DataGridTextColumn Header="Type ID" Binding="{Binding RoomTypeId}" Width="60"/>
-                <DataGridTextColumn Header="Type name" Binding="{Binding RoomType.RoomTypeName}" Width="80"/>
+                <DataGridTextColumn Header="Type name" Binding="{Binding RoomType.RoomTypeName}" Width="100"/>
                 <DataGridTextColumn Header="Type Description" Binding="{Binding RoomType.TypeDescription}" Width="110"/>
-                <DataGridTextColumn Header="Note" Binding="{Binding RoomType.TypeNote}" Width="*"/>
+                <DataGridTextColumn Header="Type Note" Binding="{Binding RoomType.TypeNote}" Width="*"/>
             </DataGrid.Columns>
         </DataGrid>
     </DockPanel>

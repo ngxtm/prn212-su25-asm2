@@ -27,9 +27,18 @@ namespace BLL.Services
         {
             _roomInformationRepositories.AddRoom(roomInformation);
         }
-        public void DeleteRoom(int id)
+        public string DeleteRoom(int id)
         {
-            _roomInformationRepositories.DeleteRoom(id);
+            return _roomInformationRepositories.DeleteRoom(id);
+        }
+
+        public void UpdateRoom(RoomInformation selectedRoom)
+        {
+            _roomInformationRepositories.UpdateRoom(selectedRoom);
+        }
+        public List<RoomType> GetAllRoomTypes()
+        {
+            return _roomInformationRepositories.GetAllRoomTypes();
         }
     }
 }

@@ -7,8 +7,101 @@
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       Title="BookingPage">
+    <Page.Resources>
+        <Style TargetType="Label">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#FF6B705C"/>
+            <Setter Property="FontFamily" Value="Arial"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#FFFFF8EB"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Foreground" Value="#FFFFFFFF"/>
+            <Setter Property="Background" Value="#FFB38B82"/>
+        </Style>
+    </Page.Resources>
 
-    <Grid>
-        
-    </Grid>
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,10,0,10">
+            <TextBox x:Name="txtSearch" Width="200" Margin="0,0,10,0"/>
+            <Button x:Name="btnSearch" Content="Search" Click="btnSearch_Click" Margin="0,0,10,0"/>
+            <Button x:Name="btnAdd" Content="Add" Click="btnAdd_Click" Margin="0,0,10,0"/>
+            <Button x:Name="btnUpdate" Content="Update" Click="btnUpdate_Click" Margin="0,0,10,0"/>
+            <Button x:Name="btnDelete" Content="Delete" Click="btnDelete_Click" Margin="0,0,10,0"/>
+            <Button Name="btnClear" Content="Clear Form" Click="btnClear_Click"/>
+        </StackPanel>
+        <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Label Content="BookingReservationID" Grid.Row="0" Grid.Column="0"/>
+            <TextBox x:Name="txtBookingReservationID" Grid.Row="0" Grid.Column="1" IsReadOnly="True"/>
+            <Label Content="BookingDate" Grid.Row="1" Grid.Column="0"/>
+            <DatePicker x:Name="dpBookingDate" Grid.Row="1" Grid.Column="1"/>
+            <Label Content="TotalPrice" Grid.Row="2" Grid.Column="0"/>
+            <TextBox x:Name="txtTotalPrice" Grid.Row="2" Grid.Column="1"/>
+            <Label Content="CustomerID" Grid.Row="3" Grid.Column="0"/>
+            <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal">
+                <TextBox x:Name="txtCustomerID" Width="120" TextChanged="txtCustomerID_TextChanged"/>
+                <Button x:Name="btnLookupCustomer" Content="Lookup" Click="btnLookupCustomer_Click" Margin="5,0,0,0" Width="60"/>
+            </StackPanel>
+            <TextBlock x:Name="txtCustomerError" Grid.Row="4" Grid.Column="1" Foreground="Red" Visibility="Collapsed"/>
+            <Label Content="CustomerFullName" Grid.Row="4" Grid.Column="0"/>
+            <TextBox x:Name="txtCustomerFullName" Grid.Row="4" Grid.Column="1" IsReadOnly="True"/>
+            <Label Content="Telephone" Grid.Row="5" Grid.Column="0"/>
+            <TextBox x:Name="txtTelephone" Grid.Row="5" Grid.Column="1" IsReadOnly="True"/>
+            <Label Content="BookingStatus" Grid.Row="6" Grid.Column="0"/>
+            <ComboBox x:Name="cbBookingStatus" Grid.Row="6" Grid.Column="1">
+                <ComboBoxItem Tag="1" Content="Active"/>
+                <ComboBoxItem Tag="0" Content="Inactive"/>
+            </ComboBox>
+            <Label Content="RoomID" Grid.Row="7" Grid.Column="0"/>
+            <StackPanel Grid.Row="7" Grid.Column="1" Orientation="Horizontal">
+                <TextBox x:Name="txtRoomID" Width="120" TextChanged="txtRoomID_TextChanged"/>
+                <Button x:Name="btnLookupRoom" Content="Lookup" Click="btnLookupRoom_Click" Margin="5,0,0,0" Width="60"/>
+            </StackPanel>
+            <TextBlock x:Name="txtRoomError" Grid.Row="8" Grid.Column="1" Foreground="Red" Visibility="Collapsed"/>
+            <Label Content="RoomNumber" Grid.Row="8" Grid.Column="0"/>
+            <TextBox x:Name="txtRoomNumber" Grid.Row="8" Grid.Column="1" IsReadOnly="True"/>
+            <Label Content="StartDate" Grid.Row="9" Grid.Column="0"/>
+            <DatePicker x:Name="dpStartDate" Grid.Row="9" Grid.Column="1"/>
+            <Label Content="EndDate" Grid.Row="10" Grid.Column="0"/>
+            <DatePicker x:Name="dpEndDate" Grid.Row="10" Grid.Column="1"/>
+            <Label Content="ActualPrice" Grid.Row="11" Grid.Column="0"/>
+            <TextBox x:Name="txtActualPrice" Grid.Row="11" Grid.Column="1"/>
+        </Grid>
+        <DataGrid x:Name="dgBooking" DockPanel.Dock="Bottom" IsReadOnly="True" AreRowDetailsFrozen="True" AutoGenerateColumns="False" CanUserAddRows="False" SelectionChanged="dgBooking_SelectionChanged">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="BookingReservationID" Binding="{Binding BookingReservationID}" Width="60"/>
+                <DataGridTextColumn Header="BookingDate" Binding="{Binding BookingDate}" Width="100"/>
+                <DataGridTextColumn Header="TotalPrice" Binding="{Binding TotalPrice}" Width="80"/>
+                <DataGridTextColumn Header="CustomerID" Binding="{Binding CustomerID}" Width="60"/>
+                <DataGridTextColumn Header="CustomerFullName" Binding="{Binding CustomerFullName}" Width="120"/>
+                <DataGridTextColumn Header="Telephone" Binding="{Binding Telephone}" Width="90"/>
+                <DataGridTextColumn Header="BookingStatus" Binding="{Binding BookingStatus}" Width="80"/>
+                <DataGridTextColumn Header="RoomID" Binding="{Binding RoomID}" Width="60"/>
+                <DataGridTextColumn Header="RoomNumber" Binding="{Binding RoomNumber}" Width="80"/>
+                <DataGridTextColumn Header="StartDate" Binding="{Binding StartDate}" Width="90"/>
+                <DataGridTextColumn Header="EndDate" Binding="{Binding EndDate}" Width="90"/>
+                <DataGridTextColumn Header="ActualPrice" Binding="{Binding ActualPrice}" Width="80"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
 </Page>

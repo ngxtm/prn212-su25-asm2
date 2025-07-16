@@ -13,12 +13,24 @@ namespace DAL.Repositories
 
         public void AddRoom(RoomInformation roomInformation)
         {
-            throw new NotImplementedException();
+            _db.RoomInformations.Add(roomInformation);
+            _db.SaveChanges();
         }
 
-        public void DeleteRoom(int id)
+        public string DeleteRoom(int id)
         {
-            throw new NotImplementedException();
+            var room = _db.RoomInformations.Find(id);
+            if (room is null) return "Không tìm thấy phòng với ID đã chọn";
+            var isBooking = _db.BookingDetails.Any(b => b.RoomId == id);
+            if (isBooking)
+            {
+                room.RoomStatus = 0;
+                _db.SaveChanges();
+                return "Không thể xoá phòng! Lý do: Phòng đang được booking. Đã chuyển trạng thái phòng sang INACTIVE";
+            }
+            _db.RoomInformations.Remove(room);
+            _db.SaveChanges();
+            return "Đã xoá phòng thành công!";
         }
 
         public List<RoomInformation> GetAllRoomInformations()
@@ -52,6 +64,25 @@ namespace DAL.Repositories
             {
                 Console.WriteLine($"Error in SearchRoom: {ex.Message}");
                 return new List<RoomInformation>();
+            }
+        }
+
+        public void UpdateRoom(RoomInformation selectedRoom)
+        {
+            _db.RoomInformations.Update(selectedRoom);
+            _db.SaveChanges();
+        }
+
+        public List<RoomType> GetAllRoomTypes()
+        {
+            try
+            {
+                return _db.RoomTypes.ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetAllRoomTypes: {ex.Message}");
+                return new List<RoomType>();
             }
         }
     }

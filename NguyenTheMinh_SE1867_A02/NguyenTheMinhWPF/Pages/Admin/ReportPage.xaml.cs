@@ -12,6 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using BLL.Services;
+using DAL.Entities;
 
 namespace NguyenTheMinhWPF.Pages.Admin
 {
@@ -20,9 +22,29 @@ namespace NguyenTheMinhWPF.Pages.Admin
     /// </summary>
     public partial class ReportPage : Page
     {
+        private readonly BookingReservationService _bookingReservationService;
         public ReportPage()
         {
             InitializeComponent();
+            _bookingReservationService = new BookingReservationService();
+        }
+
+        private void btnGenerateReport_Click(object sender, RoutedEventArgs e)
+        {
+            if (!dpStartDate.SelectedDate.HasValue || !dpEndDate.SelectedDate.HasValue)
+            {
+                MessageBox.Show("Please select both Start Date and End Date.");
+                return;
+            }
+            var startDate = System.DateOnly.FromDateTime(dpStartDate.SelectedDate.Value);
+            var endDate = System.DateOnly.FromDateTime(dpEndDate.SelectedDate.Value);
+            if (startDate > endDate)
+            {
+                MessageBox.Show("Start Date must be before or equal to End Date.");
+                return;
+            }
+            var reportData = _bookingReservationService.GetBookingReservationsByPeriod(startDate, endDate);
+            dgReport.ItemsSource = reportData;
         }
     }
 }
