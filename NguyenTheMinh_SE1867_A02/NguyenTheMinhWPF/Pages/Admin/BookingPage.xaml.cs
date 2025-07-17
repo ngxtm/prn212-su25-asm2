@@ -69,7 +69,6 @@ namespace NguyenTheMinhWPF.Pages.Admin
                 var startDate = addRoomDialog.StartDate;
                 var endDate = addRoomDialog.EndDate;
                 
-                // Check if room is available for the selected date range
                 var startDateOnly = DateOnly.FromDateTime(startDate);
                 var endDateOnly = DateOnly.FromDateTime(endDate);
                 
@@ -143,7 +142,6 @@ namespace NguyenTheMinhWPF.Pages.Admin
             {
                 if (dgBooking.SelectedItem is BookingReservationDisplayModel selectedBooking)
                 {
-                    // You may want to fetch the full BookingReservation and BookingDetails for editing
                     var booking = new BookingReservation
                     {
                         BookingReservationId = selectedBooking.BookingReservationID,
@@ -151,7 +149,6 @@ namespace NguyenTheMinhWPF.Pages.Admin
                         CustomerId = selectedBooking.CustomerID,
                         BookingStatus = selectedBooking.BookingStatus
                     };
-                    // For simplicity, pass empty details; you can expand this to fetch real details
                     var dialog = new BookingDialog(booking, new List<BookingDetail>());
                     if (dialog.ShowDialog() == true)
                     {
@@ -222,7 +219,6 @@ namespace NguyenTheMinhWPF.Pages.Admin
             txtCustomerFullName.Text = model.CustomerFullName;
             txtTelephone.Text = model.Telephone;
             
-            // Load room details for this booking
             LoadRoomDetailsForBooking(model.BookingReservationID);
         }
 

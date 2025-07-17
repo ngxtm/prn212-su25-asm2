@@ -79,16 +79,14 @@ namespace BLL.Services
                 return false;
             }
 
-            // Check if room is already booked for the given date range
             var conflictingBookings = _db.BookingDetails
                 .Where(bd => bd.RoomId == roomId)
                 .Where(bd => !excludeBookingId.HasValue || bd.BookingReservationId != excludeBookingId.Value)
                 .Where(bd => 
-                    // Check if the new booking overlaps with existing bookings
-                    (bd.StartDate <= startDate && bd.EndDate >= startDate) || // New start date falls within existing booking
-                    (bd.StartDate <= endDate && bd.EndDate >= endDate) || // New end date falls within existing booking
-                    (bd.StartDate >= startDate && bd.EndDate <= endDate) || // Existing booking falls within new booking
-                    (bd.StartDate <= startDate && bd.EndDate >= endDate) // New booking falls within existing booking
+                    (bd.StartDate <= startDate && bd.EndDate >= startDate) || 
+                    (bd.StartDate <= endDate && bd.EndDate >= endDate) || 
+                    (bd.StartDate >= startDate && bd.EndDate <= endDate) || 
+                    (bd.StartDate <= startDate && bd.EndDate >= endDate) 
                 );
 
             return !conflictingBookings.Any();
@@ -96,7 +94,6 @@ namespace BLL.Services
 
         public void AddBookingWithDetails(BookingReservation booking, List<BookingDetail> bookingDetails)
         {
-            // Validate dates and room availability
             foreach (var detail in bookingDetails)
             {
                 if (detail.StartDate >= detail.EndDate)
@@ -159,7 +156,6 @@ namespace BLL.Services
             var existingBooking = _db.BookingReservations.Include(b => b.BookingDetails).FirstOrDefault(b => b.BookingReservationId == booking.BookingReservationId);
             if (existingBooking == null) return;
 
-            // Validate dates and room availability for new details
             foreach (var detail in newDetails)
             {
                 if (detail.StartDate >= detail.EndDate)
