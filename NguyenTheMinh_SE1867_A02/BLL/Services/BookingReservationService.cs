@@ -41,7 +41,7 @@ namespace BLL.Services
         {
             var booking = new BookingReservation
             {
-                BookingReservationId = model.BookingReservationID,
+                BookingReservationId = GetNextBookingReservationId(),
                 BookingDate = model.BookingDate,
                 CustomerId = model.CustomerID,
                 BookingStatus = model.BookingStatus,
@@ -64,6 +64,63 @@ namespace BLL.Services
                 ActualPrice = actualPrice
             };
             _db.BookingDetails.Add(detail);
+            _db.SaveChanges();
+            booking.TotalPrice = _db.BookingDetails
+                .Where(d => d.BookingReservationId == booking.BookingReservationId)
+                .Sum(d => d.ActualPrice ?? 0);
+            _db.SaveChanges();
+        }
+
+        public bool IsRoomAvailable(int roomId, DateOnly startDate, DateOnly endDate, int? excludeBookingId = null)
+        {
+            // Check if startDate is before endDate
+            if (startDate >= endDate)
+            {
+                return false;
+            }
+
+            // Check if room is already booked for the given date range
+            var conflictingBookings = _db.BookingDetails
+                .Where(bd => bd.RoomId == roomId)
+                .Where(bd => !excludeBookingId.HasValue || bd.BookingReservationId != excludeBookingId.Value)
+                .Where(bd => 
+                    // Check if the new booking overlaps with existing bookings
+                    (bd.StartDate <= startDate && bd.EndDate >= startDate) || // New start date falls within existing booking
+                    (bd.StartDate <= endDate && bd.EndDate >= endDate) || // New end date falls within existing booking
+                    (bd.StartDate >= startDate && bd.EndDate <= endDate) || // Existing booking falls within new booking
+                    (bd.StartDate <= startDate && bd.EndDate >= endDate) // New booking falls within existing booking
+                );
+
+            return !conflictingBookings.Any();
+        }
+
+        public void AddBookingWithDetails(BookingReservation booking, List<BookingDetail> bookingDetails)
+        {
+            // Validate dates and room availability
+            foreach (var detail in bookingDetails)
+            {
+                if (detail.StartDate >= detail.EndDate)
+                {
+                    throw new InvalidOperationException($"Start date must be before end date for room {detail.RoomId}");
+                }
+
+                if (!IsRoomAvailable(detail.RoomId, detail.StartDate, detail.EndDate))
+                {
+                    var room = _db.RoomInformations.FirstOrDefault(r => r.RoomId == detail.RoomId);
+                    var roomNumber = room?.RoomNumber ?? detail.RoomId.ToString();
+                    throw new InvalidOperationException($"Room {roomNumber} is not available for the selected date range ({detail.StartDate:yyyy-MM-dd} to {detail.EndDate:yyyy-MM-dd})");
+                }
+            }
+
+            booking.BookingReservationId = GetNextBookingReservationId();
+            
+            _db.BookingReservations.Add(booking);
+            _db.SaveChanges();
+            foreach (var detail in bookingDetails)
+            {
+                detail.BookingReservationId = booking.BookingReservationId;
+                _db.BookingDetails.Add(detail);
+            }
             _db.SaveChanges();
             booking.TotalPrice = _db.BookingDetails
                 .Where(d => d.BookingReservationId == booking.BookingReservationId)
@@ -95,6 +152,58 @@ namespace BLL.Services
                 booking.TotalPrice = booking.BookingDetails.Sum(d => d.ActualPrice ?? 0);
                 _db.SaveChanges();
             }
+        }
+
+        public void UpdateBookingWithDetailsSmart(BookingReservation booking, List<BookingDetail> newDetails)
+        {
+            var existingBooking = _db.BookingReservations.Include(b => b.BookingDetails).FirstOrDefault(b => b.BookingReservationId == booking.BookingReservationId);
+            if (existingBooking == null) return;
+
+            // Validate dates and room availability for new details
+            foreach (var detail in newDetails)
+            {
+                if (detail.StartDate >= detail.EndDate)
+                {
+                    throw new InvalidOperationException($"Start date must be before end date for room {detail.RoomId}");
+                }
+
+                if (!IsRoomAvailable(detail.RoomId, detail.StartDate, detail.EndDate, booking.BookingReservationId))
+                {
+                    var room = _db.RoomInformations.FirstOrDefault(r => r.RoomId == detail.RoomId);
+                    var roomNumber = room?.RoomNumber ?? detail.RoomId.ToString();
+                    throw new InvalidOperationException($"Room {roomNumber} is not available for the selected date range ({detail.StartDate:yyyy-MM-dd} to {detail.EndDate:yyyy-MM-dd})");
+                }
+            }
+
+            existingBooking.BookingDate = booking.BookingDate;
+            existingBooking.CustomerId = booking.CustomerId;
+            existingBooking.BookingStatus = booking.BookingStatus;
+            existingBooking.TotalPrice = booking.TotalPrice;
+
+            var toDelete = existingBooking.BookingDetails.Where(ed => !newDetails.Any(nd => nd.RoomId == ed.RoomId)).ToList();
+            foreach (var del in toDelete)
+            {
+                _db.BookingDetails.Remove(del);
+            }
+
+            foreach (var nd in newDetails)
+            {
+                var existingDetail = existingBooking.BookingDetails.FirstOrDefault(ed => ed.RoomId == nd.RoomId);
+                if (existingDetail != null)
+                {
+                    existingDetail.StartDate = nd.StartDate;
+                    existingDetail.EndDate = nd.EndDate;
+                    existingDetail.ActualPrice = nd.ActualPrice;
+                }
+                else
+                {
+                    nd.BookingReservationId = booking.BookingReservationId;
+                    _db.BookingDetails.Add(nd);
+                }
+            }
+
+            existingBooking.TotalPrice = existingBooking.BookingDetails.Sum(d => d.ActualPrice ?? 0);
+            _db.SaveChanges();
         }
 
         public void DeleteBooking(int bookingReservationId, int roomId)
@@ -137,6 +246,12 @@ namespace BLL.Services
                             ActualPrice = bd.ActualPrice
                         };
             return query.ToList();
+        }
+
+        public int GetNextBookingReservationId()
+        {
+            var maxId = _db.BookingReservations.Max(b => (int?)b.BookingReservationId) ?? 0;
+            return maxId + 1;
         }
     }
 

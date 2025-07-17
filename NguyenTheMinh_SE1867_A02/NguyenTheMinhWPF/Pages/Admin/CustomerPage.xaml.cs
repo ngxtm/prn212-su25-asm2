@@ -3,17 +3,8 @@ using DAL.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace NguyenTheMinhWPF.Pages.Admin
 {
@@ -27,6 +18,7 @@ namespace NguyenTheMinhWPF.Pages.Admin
         {
             InitializeComponent();
             this._customerService = new CustomerService();
+            Loaded += Page_Loaded;
         }
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
@@ -57,136 +49,30 @@ namespace NguyenTheMinhWPF.Pages.Admin
 
         private void btnAdd_Click(object sender, RoutedEventArgs e)
         {
-            try
+            var dialog = new CustomerDialog();
+            if (dialog.ShowDialog() == true)
             {
-                if (string.IsNullOrWhiteSpace(txtFullName.Text))
-                {
-                    MessageBox.Show("Vui lòng nhập họ tên khách hàng!");
-                    return;
-                }
-
-                var telephone = txtTelephone.Text;
-                if (string.IsNullOrWhiteSpace(telephone) ||
-                    !System.Text.RegularExpressions.Regex.IsMatch(telephone, @"^(?:\+84|0)(3[2-9]|5[6|8|9]|7[0|6-9]|8[1-5]|9[0-9])[0-9]{7}$"))
-                {
-                    MessageBox.Show("Số điện thoại không hợp lệ vui lòng nhập lại");
-                    return;
-                }
-
-                if (string.IsNullOrWhiteSpace(txtEmail.Text))
-                {
-                    MessageBox.Show("Vui lòng nhập email!");
-                    return;
-                }
-
-                if (!dpBirthday.SelectedDate.HasValue)
-                {
-                    MessageBox.Show("Vui lòng chọn ngày sinh!");
-                    return;
-                }
-
-                if (cbStatus.SelectedValue == null)
-                {
-                    MessageBox.Show("Vui lòng chọn trạng thái!");
-                    return;
-                }
-
-                if (string.IsNullOrWhiteSpace(txtPassword.Text))
-                {
-                    MessageBox.Show("Vui lòng nhập mật khẩu!");
-                    return;
-                }
-
-                var customer = new DAL.Entities.Customer
-                {
-                    CustomerFullName = txtFullName.Text.Trim(),
-                    Telephone = telephone.Trim(),
-                    EmailAddress = txtEmail.Text.Trim(),
-                    CustomerBirthday = DateOnly.FromDateTime(dpBirthday.SelectedDate.Value),
-                    CustomerStatus = Convert.ToByte(cbStatus.SelectedValue),
-                    Password = txtPassword.Text
-                };
-
-                _customerService.AddCustomer(customer);
+                _customerService.AddCustomer(dialog.Customer);
                 MessageBox.Show("Thêm khách hàng thành công!");
-                
-                ClearForm();
-                
                 Page_Loaded(sender, e);
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Lỗi khi thêm khách hàng: {ex.Message}");
-            }
-        }
-
-        private void ClearForm()
-        {
-            txtFullName.Text = "";
-            txtTelephone.Text = "";
-            txtEmail.Text = "";
-            dpBirthday.SelectedDate = null;
-            cbStatus.SelectedIndex = -1;
-            txtPassword.Text = "";
         }
 
         private void btnUpdate_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtFullName.Text))
-            {
-                MessageBox.Show("Vui lòng nhập họ tên khách hàng!");
-                return;
-            }
-
-            var telephone = txtTelephone.Text;
-            if (string.IsNullOrWhiteSpace(telephone) ||
-                !System.Text.RegularExpressions.Regex.IsMatch(telephone, @"^(?:\+84|0)(3[2-9]|5[6|8|9]|7[0|6-9]|8[1-5]|9[0-9])[0-9]{7}$"))
-            {
-                MessageBox.Show("Số điện thoại không hợp lệ vui lòng nhập lại");
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(txtEmail.Text))
-            {
-                MessageBox.Show("Vui lòng nhập email!");
-                return;
-            }
-
-            if (!dpBirthday.SelectedDate.HasValue)
-            {
-                MessageBox.Show("Vui lòng chọn ngày sinh!");
-                return;
-            }
-
-            if (cbStatus.SelectedValue == null)
-            {
-                MessageBox.Show("Vui lòng chọn trạng thái!");
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(txtPassword.Text))
-            {
-                MessageBox.Show("Vui lòng nhập mật khẩu!");
-                return;
-            }
-
             if (dgCustomer.SelectedItem is DAL.Entities.Customer customer)
             {
-                try
+                var dialog = new CustomerDialog(customer);
+                if (dialog.ShowDialog() == true)
                 {
-                    customer.CustomerFullName = txtFullName.Text.Trim();
-                    customer.Telephone = telephone;
-                    customer.EmailAddress = txtEmail.Text;
-                    customer.CustomerBirthday = DateOnly.FromDateTime(dpBirthday.SelectedDate.Value);
-                    customer.CustomerStatus = Convert.ToByte(cbStatus.SelectedValue);
-                    customer.Password = txtPassword.Text;
-                    Page_Loaded(sender, e);
+                    _customerService.UpdateCustomer(dialog.Customer);
                     MessageBox.Show($"Đã update khách hàng id: {customer.CustomerId} thành công!");
-                } catch (Exception ex)
-                {
-                    MessageBox.Show($"An error occurred while updating the project: {ex.Message}");
-                    return;
+                    Page_Loaded(sender, e);
                 }
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn khách hàng để cập nhật!");
             }
         }
 
@@ -202,33 +88,6 @@ namespace NguyenTheMinhWPF.Pages.Admin
                     Page_Loaded(sender, e);
                 }
             }    
-        }
-
-        private void dgCustomer_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (dgCustomer.SelectedItem is DAL.Entities.Customer customer)
-            {
-                AutoFillInputFields(customer);
-            }
-            else
-            {
-                ClearForm();
-            }
-        }
-
-        private void AutoFillInputFields(DAL.Entities.Customer customer)
-        {
-            txtFullName.Text = customer.CustomerFullName;
-            txtTelephone.Text = customer.Telephone;
-            txtEmail.Text = customer.EmailAddress;
-            dpBirthday.SelectedDate = customer.CustomerBirthday.HasValue ? customer.CustomerBirthday.Value.ToDateTime(TimeOnly.MinValue) : (DateTime?)null;
-            cbStatus.SelectedValue = customer.CustomerStatus;
-            txtPassword.Text = customer.Password;
-        }
-
-        private void btnClear_Click(object sender, RoutedEventArgs e)
-        {
-            ClearForm();
         }
     }
 }

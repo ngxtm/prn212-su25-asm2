@@ -1,0 +1,54 @@
+<Window x:Class="NguyenTheMinhWPF.Pages.Admin.RoomDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Room" Height="230" Width="400" WindowStartupLocation="CenterOwner" ResizeMode="NoResize" FontFamily="Tahoma" FontSize="13" Background="#FFF5F5DC">
+    <Window.Resources>
+        <Style TargetType="Label">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#FF6B705C"/>
+            <Setter Property="FontFamily" Value="Arial"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#FFFFF8EB"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Foreground" Value="#FFFFFFFF"/>
+            <Setter Property="Background" Value="#FFB38B82"/>
+        </Style>
+    </Window.Resources>
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Label Content="Room Number:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"/>
+        <TextBox x:Name="txtRoomNumber" Grid.Row="0" Grid.Column="1" MinWidth="150"/>
+        <Label Content="Detail Description:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"/>
+        <TextBox x:Name="txtRoomDetailDescription" Grid.Row="1" Grid.Column="1"/>
+        <Label Content="Max Capacity:" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center"/>
+        <TextBox x:Name="txtMaxCapacity" Grid.Row="2" Grid.Column="1"/>
+        <Label Content="Room Type:" Grid.Row="3" Grid.Column="0" VerticalAlignment="Center"/>
+        <ComboBox x:Name="cbRoomType" Grid.Row="3" Grid.Column="1" MinWidth="100" DisplayMemberPath="RoomTypeName" SelectedValuePath="RoomTypeId"/>
+        <Label Content="Status:" Grid.Row="4" Grid.Column="0" VerticalAlignment="Center"/>
+        <ComboBox x:Name="cbStatus" Grid.Row="4" Grid.Column="1" MinWidth="100">
+            <ComboBoxItem Tag="1" Content="Active"/>
+            <ComboBoxItem Tag="0" Content="Inactive"/>
+        </ComboBox>
+        <Label Content="Price/Day:" Grid.Row="5" Grid.Column="0" VerticalAlignment="Center"/>
+        <TextBox x:Name="txtPrice" Grid.Row="5" Grid.Column="1"/>
+        <StackPanel Grid.Row="6" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="OK" Width="80" Margin="0,0,10,0" Click="Ok_Click"/>
+            <Button Content="Cancel" Width="80" Click="Cancel_Click"/>
+        </StackPanel>
+    </Grid>
+</Window> 

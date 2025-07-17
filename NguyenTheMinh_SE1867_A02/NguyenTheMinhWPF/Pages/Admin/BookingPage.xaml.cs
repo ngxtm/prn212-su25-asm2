@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Collections.ObjectModel;
 
 namespace NguyenTheMinhWPF.Pages.Admin
 {
@@ -17,6 +18,7 @@ namespace NguyenTheMinhWPF.Pages.Admin
         private readonly CustomerService _customerService;
         private readonly RoomInformationService _roomService;
         private List<BookingReservationDisplayModel> _allBookings;
+        private ObservableCollection<RoomDetailViewModel> RoomDetails = new ObservableCollection<RoomDetailViewModel>();
 
         public BookingPage()
         {
@@ -24,6 +26,7 @@ namespace NguyenTheMinhWPF.Pages.Admin
             _bookingReservationService = new BookingReservationService();
             _customerService = new CustomerService();
             _roomService = new RoomInformationService();
+            dgRoomDetails.ItemsSource = RoomDetails;
             Loaded += Page_Loaded;
         }
 
@@ -57,39 +60,118 @@ namespace NguyenTheMinhWPF.Pages.Admin
             }
         }
 
+        private void btnAddRoom_Click(object sender, RoutedEventArgs e)
+        {
+            var addRoomDialog = new AddRoomDialog(_roomService.GetAllRoomInformations());
+            if (addRoomDialog.ShowDialog() == true)
+            {
+                var selectedRoom = addRoomDialog.SelectedRoom;
+                var startDate = addRoomDialog.StartDate;
+                var endDate = addRoomDialog.EndDate;
+                
+                // Check if room is available for the selected date range
+                var startDateOnly = DateOnly.FromDateTime(startDate);
+                var endDateOnly = DateOnly.FromDateTime(endDate);
+                
+                if (!_bookingReservationService.IsRoomAvailable(selectedRoom.RoomId, startDateOnly, endDateOnly))
+                {
+                    MessageBox.Show($"Room {selectedRoom.RoomNumber} is not available for the selected date range ({startDateOnly:yyyy-MM-dd} to {endDateOnly:yyyy-MM-dd})!");
+                    return;
+                }
+
+                decimal actualPrice = selectedRoom.RoomPricePerDay.HasValue ? selectedRoom.RoomPricePerDay.Value * ((endDate - startDate).Days + 1) : 0;
+                RoomDetails.Add(new RoomDetailViewModel
+                {
+                    RoomID = selectedRoom.RoomId,
+                    RoomNumber = selectedRoom.RoomNumber,
+                    StartDate = startDate,
+                    EndDate = endDate,
+                    ActualPrice = actualPrice
+                });
+                UpdateTotalPrice();
+            }
+        }
+
+        private void btnRemoveRoom_Click(object sender, RoutedEventArgs e)
+        {
+            if ((sender as Button)?.Tag is RoomDetailViewModel roomDetail)
+            {
+                var result = MessageBox.Show("Bạn có chắc chắn muốn xoá phòng này khỏi đặt phòng không?", "Xoá phòng", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (result == MessageBoxResult.Yes)
+                {
+                    RoomDetails.Remove(roomDetail);
+                    UpdateTotalPrice();
+                }
+            }
+        }
+
+        private void UpdateTotalPrice()
+        {
+            txtTotalPrice.Text = RoomDetails.Sum(r => r.ActualPrice).ToString("F2");
+        }
+
+        private void dgRoomDetails_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
+        {
+            UpdateTotalPrice();
+        }
+
         private void btnAdd_Click(object sender, RoutedEventArgs e)
         {
-            if (!ValidateForm()) return;
             try
             {
-                var model = GetModelFromForm();
-                _bookingReservationService.AddBooking(model);
-                MessageBox.Show("Thêm đặt phòng thành công!");
-                ClearForm();
-                LoadBookings();
-                UpdateDisplayedTotalPrice(model.BookingReservationID);
+                var dialog = new BookingDialog();
+                if (dialog.ShowDialog() == true)
+                {
+                    _bookingReservationService.AddBookingWithDetails(dialog.Booking, dialog.RoomDetails);
+                    MessageBox.Show("Thêm đặt phòng thành công!");
+                    LoadBookings();
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                MessageBox.Show($"Validation error: {ex.Message}", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi khi thêm đặt phòng: {ex.Message}");
+                MessageBox.Show($"Error adding booking: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private void btnUpdate_Click(object sender, RoutedEventArgs e)
         {
-            if (!ValidateForm()) return;
             try
             {
-                var model = GetModelFromForm();
-                _bookingReservationService.UpdateBooking(model);
-                MessageBox.Show("Cập nhật đặt phòng thành công!");
-                ClearForm();
-                LoadBookings();
-                UpdateDisplayedTotalPrice(model.BookingReservationID);
+                if (dgBooking.SelectedItem is BookingReservationDisplayModel selectedBooking)
+                {
+                    // You may want to fetch the full BookingReservation and BookingDetails for editing
+                    var booking = new BookingReservation
+                    {
+                        BookingReservationId = selectedBooking.BookingReservationID,
+                        BookingDate = selectedBooking.BookingDate,
+                        CustomerId = selectedBooking.CustomerID,
+                        BookingStatus = selectedBooking.BookingStatus
+                    };
+                    // For simplicity, pass empty details; you can expand this to fetch real details
+                    var dialog = new BookingDialog(booking, new List<BookingDetail>());
+                    if (dialog.ShowDialog() == true)
+                    {
+                        _bookingReservationService.UpdateBookingWithDetailsSmart(dialog.Booking, dialog.RoomDetails);
+                        MessageBox.Show("Cập nhật đặt phòng thành công!");
+                        LoadBookings();
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Vui lòng chọn đặt phòng để cập nhật!");
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                MessageBox.Show($"Validation error: {ex.Message}", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi khi cập nhật đặt phòng: {ex.Message}");
+                MessageBox.Show($"Error updating booking: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -97,12 +179,16 @@ namespace NguyenTheMinhWPF.Pages.Admin
         {
             try
             {
-                if (int.TryParse(txtBookingReservationID.Text, out int bookingId) && int.TryParse(txtRoomID.Text, out int roomId))
+                if (dgBooking.SelectedItem is BookingReservationDisplayModel selectedBooking)
                 {
-                    _bookingReservationService.DeleteBooking(bookingId, roomId);
-                    MessageBox.Show("Xoá đặt phòng thành công!");
-                    ClearForm();
-                    LoadBookings();
+                    var result = MessageBox.Show("Bạn có muốn xoá lịch đặt phòng này không?", "Xoá lịch đặt phòng", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        _bookingReservationService.DeleteBooking(selectedBooking.BookingReservationID, selectedBooking.RoomID);
+                        MessageBox.Show("Xoá đặt phòng thành công!");
+                        ClearForm();
+                        LoadBookings();
+                    }
                 }
                 else
                 {
@@ -113,11 +199,6 @@ namespace NguyenTheMinhWPF.Pages.Admin
             {
                 MessageBox.Show($"Lỗi khi xoá đặt phòng: {ex.Message}");
             }
-        }
-
-        private void btnClear_Click(object sender, RoutedEventArgs e)
-        {
-            ClearForm();
         }
 
         private void dgBooking_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -132,25 +213,6 @@ namespace NguyenTheMinhWPF.Pages.Admin
             }
         }
 
-        private BookingReservationDisplayModel GetModelFromForm()
-        {
-            return new BookingReservationDisplayModel
-            {
-                BookingReservationID = int.TryParse(txtBookingReservationID.Text, out int bid) ? bid : 0,
-                BookingDate = dpBookingDate.SelectedDate.HasValue ? System.DateOnly.FromDateTime(dpBookingDate.SelectedDate.Value) : null,
-                // TotalPrice is not set from user input anymore
-                CustomerID = int.TryParse(txtCustomerID.Text, out int cid) ? cid : 0,
-                CustomerFullName = txtCustomerFullName.Text,
-                Telephone = txtTelephone.Text,
-                BookingStatus = cbBookingStatus.SelectedValue is byte bstatus ? bstatus : (cbBookingStatus.SelectedItem is ComboBoxItem item ? Convert.ToByte(item.Tag) : (byte?)null),
-                RoomID = int.TryParse(txtRoomID.Text, out int rid) ? rid : 0,
-                RoomNumber = txtRoomNumber.Text,
-                StartDate = dpStartDate.SelectedDate.HasValue ? System.DateOnly.FromDateTime(dpStartDate.SelectedDate.Value) : default,
-                EndDate = dpEndDate.SelectedDate.HasValue ? System.DateOnly.FromDateTime(dpEndDate.SelectedDate.Value) : default,
-                ActualPrice = decimal.TryParse(txtActualPrice.Text, out decimal ap) ? ap : null
-            };
-        }
-
         private void FillForm(BookingReservationDisplayModel model)
         {
             txtBookingReservationID.Text = model.BookingReservationID.ToString();
@@ -159,35 +221,27 @@ namespace NguyenTheMinhWPF.Pages.Admin
             txtCustomerID.Text = model.CustomerID.ToString();
             txtCustomerFullName.Text = model.CustomerFullName;
             txtTelephone.Text = model.Telephone;
-            if (model.BookingStatus.HasValue)
-            {
-                foreach (ComboBoxItem item in cbBookingStatus.Items)
-                {
-                    if (item.Tag != null && item.Tag.ToString() == model.BookingStatus.Value.ToString())
-                    {
-                        cbBookingStatus.SelectedItem = item;
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                cbBookingStatus.SelectedIndex = -1;
-            }
-            txtRoomID.Text = model.RoomID.ToString();
-            txtRoomNumber.Text = model.RoomNumber;
-            dpStartDate.SelectedDate = model.StartDate.ToDateTime(TimeOnly.MinValue);
-            dpEndDate.SelectedDate = model.EndDate.ToDateTime(TimeOnly.MinValue);
-            txtActualPrice.Text = model.ActualPrice?.ToString();
+            
+            // Load room details for this booking
+            LoadRoomDetailsForBooking(model.BookingReservationID);
         }
 
-        private void UpdateDisplayedTotalPrice(int bookingReservationId)
+        private void LoadRoomDetailsForBooking(int bookingId)
         {
-            var booking = _allBookings.FirstOrDefault(b => b.BookingReservationID == bookingReservationId);
-            if (booking != null)
+            RoomDetails.Clear();
+            var bookingDetails = _allBookings.Where(b => b.BookingReservationID == bookingId);
+            foreach (var detail in bookingDetails)
             {
-                txtTotalPrice.Text = booking.TotalPrice?.ToString();
+                RoomDetails.Add(new RoomDetailViewModel
+                {
+                    RoomID = detail.RoomID,
+                    RoomNumber = detail.RoomNumber,
+                    StartDate = detail.StartDate.ToDateTime(TimeOnly.MinValue),
+                    EndDate = detail.EndDate.ToDateTime(TimeOnly.MinValue),
+                    ActualPrice = detail.ActualPrice ?? 0
+                });
             }
+            UpdateTotalPrice();
         }
 
         private void txtCustomerID_TextChanged(object sender, TextChangedEventArgs e)
@@ -195,98 +249,32 @@ namespace NguyenTheMinhWPF.Pages.Admin
             txtCustomerError.Visibility = Visibility.Collapsed;
         }
 
-        private void txtRoomID_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            txtRoomError.Visibility = Visibility.Collapsed;
-            CalculateAndDisplayActualPrice();
-        }
-
-        private void dpStartDate_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
-        {
-            CalculateAndDisplayActualPrice();
-        }
-
-        private void dpEndDate_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
-        {
-            CalculateAndDisplayActualPrice();
-        }
-
-        private void CalculateAndDisplayActualPrice()
-        {
-            if (int.TryParse(txtRoomID.Text, out int roomId) && dpStartDate.SelectedDate.HasValue && dpEndDate.SelectedDate.HasValue)
-            {
-                var room = _roomService.GetAllRoomInformations().FirstOrDefault(r => r.RoomId == roomId);
-                if (room != null && room.RoomPricePerDay.HasValue)
-                {
-                    var start = dpStartDate.SelectedDate.Value;
-                    var end = dpEndDate.SelectedDate.Value;
-                    int days = (end - start).Days + 1;
-                    if (days > 0)
-                    {
-                        decimal actualPrice = room.RoomPricePerDay.Value * days;
-                        txtActualPrice.Text = actualPrice.ToString("F2");
-                        return;
-                    }
-                }
-            }
-            txtActualPrice.Text = string.Empty;
-        }
-
         private void ClearForm()
         {
-            txtBookingReservationID.Text = "";
+            txtBookingReservationID.Text = string.Empty;
             dpBookingDate.SelectedDate = null;
-            txtTotalPrice.Text = "";
-            txtCustomerID.Text = "";
-            txtCustomerFullName.Text = "";
-            txtTelephone.Text = "";
-            cbBookingStatus.SelectedIndex = -1;
-            txtRoomID.Text = "";
-            txtRoomNumber.Text = "";
-            dpStartDate.SelectedDate = null;
-            dpEndDate.SelectedDate = null;
-            txtActualPrice.Text = "";
+            txtTotalPrice.Text = string.Empty;
+            txtCustomerID.Text = string.Empty;
+            txtCustomerFullName.Text = string.Empty;
+            txtTelephone.Text = string.Empty;
             dgBooking.SelectedItem = null;
             txtCustomerError.Visibility = Visibility.Collapsed;
-            txtRoomError.Visibility = Visibility.Collapsed;
+            RoomDetails.Clear();
         }
 
         private bool ValidateForm()
         {
             bool valid = true;
             txtCustomerError.Visibility = Visibility.Collapsed;
-            txtRoomError.Visibility = Visibility.Collapsed;
-
             if (!int.TryParse(txtCustomerID.Text, out int customerId) || _customerService.GetAllCustomers().FirstOrDefault(c => c.CustomerId == customerId) == null)
             {
                 txtCustomerError.Text = "Customer ID không hợp lệ hoặc không tồn tại!";
                 txtCustomerError.Visibility = Visibility.Visible;
                 valid = false;
             }
-            if (!int.TryParse(txtRoomID.Text, out int roomId) || _roomService.GetAllRoomInformations().FirstOrDefault(r => r.RoomId == roomId) == null)
+            if (RoomDetails.Count == 0)
             {
-                txtRoomError.Text = "Room ID không hợp lệ hoặc không tồn tại!";
-                txtRoomError.Visibility = Visibility.Visible;
-                valid = false;
-            }
-            if (string.IsNullOrWhiteSpace(txtTotalPrice.Text) || !decimal.TryParse(txtTotalPrice.Text, out _))
-            {
-                MessageBox.Show("TotalPrice không hợp lệ!");
-                valid = false;
-            }
-            if (!dpBookingDate.SelectedDate.HasValue)
-            {
-                MessageBox.Show("Vui lòng chọn BookingDate!");
-                valid = false;
-            }
-            if (!dpStartDate.SelectedDate.HasValue)
-            {
-                MessageBox.Show("Vui lòng chọn StartDate!");
-                valid = false;
-            }
-            if (!dpEndDate.SelectedDate.HasValue)
-            {
-                MessageBox.Show("Vui lòng chọn EndDate!");
+                MessageBox.Show("Vui lòng thêm ít nhất một phòng!");
                 valid = false;
             }
             return valid;
@@ -305,44 +293,28 @@ namespace NguyenTheMinhWPF.Pages.Admin
                 }
                 else
                 {
-                    txtCustomerFullName.Text = "";
-                    txtTelephone.Text = "";
+                    txtCustomerFullName.Text = string.Empty;
+                    txtTelephone.Text = string.Empty;
                     txtCustomerError.Text = "Không tìm thấy khách hàng!";
                     txtCustomerError.Visibility = Visibility.Visible;
                 }
             }
             else
             {
-                txtCustomerFullName.Text = "";
-                txtTelephone.Text = "";
+                txtCustomerFullName.Text = string.Empty;
+                txtTelephone.Text = string.Empty;
                 txtCustomerError.Text = "Customer ID không hợp lệ!";
                 txtCustomerError.Visibility = Visibility.Visible;
             }
         }
+    }
 
-        private void btnLookupRoom_Click(object sender, RoutedEventArgs e)
-        {
-            txtRoomError.Visibility = Visibility.Collapsed;
-            if (int.TryParse(txtRoomID.Text, out int roomId))
-            {
-                var room = _roomService.GetAllRoomInformations().FirstOrDefault(r => r.RoomId == roomId);
-                if (room != null)
-                {
-                    txtRoomNumber.Text = room.RoomNumber;
-                }
-                else
-                {
-                    txtRoomNumber.Text = "";
-                    txtRoomError.Text = "Không tìm thấy phòng!";
-                    txtRoomError.Visibility = Visibility.Visible;
-                }
-            }
-            else
-            {
-                txtRoomNumber.Text = "";
-                txtRoomError.Text = "Room ID không hợp lệ!";
-                txtRoomError.Visibility = Visibility.Visible;
-            }
-        }
+    public class RoomDetailViewModel
+    {
+        public int RoomID { get; set; }
+        public string RoomNumber { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public decimal ActualPrice { get; set; }
     }
 }

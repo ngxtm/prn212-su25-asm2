@@ -44,9 +44,7 @@ namespace DAL.Repositories
         {
             try
             {
-                return _db.Customers
-                    .Where(c => c.CustomerFullName != null && c.Telephone != null)
-                    .ToList();
+                return _db.Customers.ToList();
             }
             catch (Exception ex)
             {
